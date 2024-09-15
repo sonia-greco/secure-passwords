@@ -1,24 +1,50 @@
+import sqlite3
+
+con = sqlite3.connect('hashedpotatoes.db')
+
+cur = con.cursor()
+
+"""
+cur.execute('''
+DELETE FROM myusertable
+''')
+"""
+
+cur.execute('''
+CREATE TABLE IF NOT EXISTS myusertable (
+  username TEXT PRIMARY KEY, 
+  hash text NOT NULL
+)
+''')
+
 myMap = {}
 
 def createAccount(userName, password):
-	hashedpwd = hash(password)
+	hashedpwd = str(hash(password))
 	dict2 = {userName: hashedpwd}
 	myMap.update(dict2)
+	cur.execute("INSERT INTO myusertable (username, hash) VALUES (?, ?)", (userName, hashedpwd))
+	con.commit()
 	print('Password is ' + str(hashedpwd))
 
 def verifyAccount(userName, password):
-	toCheck = myMap.get(userName)
-	if toCheck == None:
+	cur.execute("SELECT hash FROM myusertable WHERE username = ?", (userName,))
+	rows = cur.fetchall()
+	#toCheck = myMap.get(userName)
+	if len(rows) == 0:
 		print('Username not found')
 		return False
-	if toCheck == hash(password):
+	first_row = rows[0]
+	hashInDB = first_row[0]
+	if hashInDB == str(hash(password)):
 		return True
+	
 	print('Password not found')
 	return False
 
-print('Input username and password three times: ')
+print('Input username and password one time: ')
 
-for i in range(3):
+for i in range(1):
 	userName = input('Input username: ')
 	password = input('Input password: ')
 	createAccount(userName, password)
