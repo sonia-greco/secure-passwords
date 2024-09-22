@@ -1,19 +1,20 @@
 import sqlite3
+import os
 
 con = sqlite3.connect('hashedpotatoes.db')
 
 cur = con.cursor()
 
-"""
-cur.execute('''
-DELETE FROM myusertable
-''')
-"""
+# '''
+# cur.execute('''
+# DELETE FROM myusertable
+# ''')
+# '''
 
 cur.execute('''
 CREATE TABLE IF NOT EXISTS myusertable (
   username TEXT PRIMARY KEY, 
-  hash text NOT NULL
+  hash TEXT NOT NULL
 )
 ''')
 
@@ -38,11 +39,11 @@ def verifyAccount(userName, password):
 	hashInDB = first_row[0]
 	if hashInDB == str(hash(password)):
 		return True
-	
-	print('Password not found')
-	return False
+	else:
+		print('Password not found')
+		return False
 
-print('Input username and password one time: ')
+print('Input username and password: ')
 
 for i in range(1):
 	userName = input('Input username: ')
