@@ -1,10 +1,5 @@
 import sqlite3
 
-# TO DO
-# Remove hashmap in memory because it is not used anymore (we are using a database) 
-# Build a function to change password, which first verifies if the old password is correct and, if correct, it actually change it to the new one. We reuse the existing function "verifyAccount" to check if the old password is correct.
-# Use the new changePassword function in the main program to let the user actually update a password
-
 con = sqlite3.connect('hashedpotatoes.db')
 
 cur = con.cursor()
@@ -22,12 +17,8 @@ CREATE TABLE IF NOT EXISTS myusertable (
 )
 ''')
 
-#myMap = {}
-
 def createAccount(userName, password):
 	hashedpwd = str(hash(password))
-#	dict2 = {userName: hashedpwd}
-#	myMap.update(dict2)
 	cur.execute("INSERT INTO myusertable (username, hash) VALUES (?, ?)", (userName, hashedpwd))
 	con.commit()
 	print('Password is ' + str(hashedpwd))
@@ -35,7 +26,6 @@ def createAccount(userName, password):
 def verifyAccount(userName, password):
 	cur.execute("SELECT hash FROM myusertable WHERE username = ?", (userName,))
 	rows = cur.fetchall()
-	#toCheck = myMap.get(userName)
 	if len(rows) == 0:
 		print('Username not found')
 		return False
@@ -63,8 +53,6 @@ for i in range(1):
 	userName = input('Input username: ')
 	password = input('Input password: ')
 	createAccount(userName, password)
-
-#print(myMap)
 
 continueVerify = 'V'
 
