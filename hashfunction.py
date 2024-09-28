@@ -81,7 +81,7 @@ while continueVerify == 'V':
 	else:
 		print('Account not verified')
 
-	continueVerify = input('Do you want to continue to verify or create a new password? \nV for verify or P password: ')
+	continueVerify = input('Do you want to continue to verify or create a new password? \nV for verify or P for password: ')
 
 createNewPwd = 'P'
 
@@ -97,7 +97,7 @@ while createNewPwd == 'P':
 	else:
 		print('Account not found')
 
-	createNewPwd = input('Do you want to change another password? \nP for yes and N for no: ')
+	createNewPwd = input('Do you want to change another password? \nY for yes and N for no: ')
 
 
 
