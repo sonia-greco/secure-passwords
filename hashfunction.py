@@ -8,14 +8,11 @@ def get_db_connection():
     conn = sqlite3.connect('hashedpotatoes.db', check_same_thread=False)
     return conn
 
-
-
 # '''
 # cur.execute('''
 # DELETE FROM myusertable
 # ''')
 # '''
-
 
 conn = get_db_connection()
 cur = conn.cursor()
@@ -39,7 +36,7 @@ def createAccount(userName, password):
 	conn.close()
 	print('Password is ' + str(hashedpwd))
 
-"""
+
 def verifyAccount(userName, password):
 	conn = get_db_connection()
 	cur = conn.cursor()
@@ -59,7 +56,6 @@ def verifyAccount(userName, password):
 		print('Password not found')
 		return False
 
-
 def changePassword(userName, password, newPassword):
 	accountExists = verifyAccount(userName, password)
 	conn = get_db_connection()
@@ -73,7 +69,7 @@ def changePassword(userName, password, newPassword):
 		return True
 	else:
 		return False
-
+"""
 print('Please create an account')
 
 for i in range(1):
@@ -136,7 +132,33 @@ def verify_account():
 	password = data.get('password')
 
 	if 'username' not in data or 'password' not in data:
-		return jsonify({'error': })
+		return jsonify({'error': 'Incorrect username or password'}), 400
+	
+	validAccount = verifyAccount(username, password)
+
+	if validAccount == True:
+		return jsonify({'message': 'Account is verified'}), 200
+	else:
+		return jsonify({'error': 'Account not verified'}), 401
+
+#API endpoint to change a password
+@app.route('/changePassword', methods=['POST'])
+def change_password():
+	data = request.json
+	username = data.get('username')
+	password = data.get('password')
+	newpwd = data.get('newPassword')
+
+	if 'username' not in data or 'password' not in data or 'newpwd' not in data:
+		return jsonify({'error': 'Missing username, password, or new password'}), 400
+	
+	changedpwd = changePassword(username, password, newpwd)
+
+	if changedpwd == True:
+		return jsonify({'message': 'Password changed successfully'}), 200
+	else:
+		return jsonify({'error': 'Password not changed successfully'}), 401
+	#problem is that when you try to verify an account after changing its pwd successfully, it returns account not verified
 
 #Start the Flask app
 if __name__ == '__main__':
