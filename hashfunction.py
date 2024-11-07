@@ -149,16 +149,15 @@ def change_password():
 	password = data.get('password')
 	newpwd = data.get('newPassword')
 
-	if 'username' not in data or 'password' not in data or 'newpwd' not in data:
+	if 'username' not in data or 'password' not in data or 'newPassword' not in data:
 		return jsonify({'error': 'Missing username, password, or new password'}), 400
 	
 	changedpwd = changePassword(username, password, newpwd)
-
+	
 	if changedpwd == True:
 		return jsonify({'message': 'Password changed successfully'}), 200
 	else:
 		return jsonify({'error': 'Password not changed successfully'}), 401
-	#problem is that when you try to verify an account after changing its pwd successfully, it returns account not verified
 
 #Start the Flask app
 if __name__ == '__main__':
