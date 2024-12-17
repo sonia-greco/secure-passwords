@@ -100,6 +100,6 @@ class TestAPIEndpoints(unittest.TestCase):
                                 data=json.dumps(invalid_change),
                                 content_type='application/json')
         self.assertEqual(response.status_code, 401)
-        
+
 if __name__ == '__main__':
    unittest.main()
