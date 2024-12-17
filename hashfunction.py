@@ -1,18 +1,25 @@
 from flask import Flask, request, jsonify
 import sqlite3
 
-# Initialize Flask app
+#Initialize Flask app
 app = Flask(__name__)
 
 def get_db_connection():
     conn = sqlite3.connect('hashedpotatoes.db', check_same_thread=False)
     return conn
 
-# '''
-# cur.execute('''
-# DELETE FROM myusertable
-# ''')
-# '''
+#Clear data table
+def empty_db():
+	conn = get_db_connection()
+	cur = conn.cursor()
+	cur.execute('''
+	DELETE FROM myusertable
+	''')
+	conn.commit()
+	cur.close()
+	conn.close()
+
+# empty_db()
 
 conn = get_db_connection()
 cur = conn.cursor()
