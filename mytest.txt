@@ -1,14 +1,18 @@
     
 curl -X POST http://127.0.0.1:5000/createAccount \
 -H "Content-Type: application/json" \
--d '{"username": "eamon", "password": "world"}'
+-d '{"username": "com", "password": "puter"}'
 
 curl -X POST http://127.0.0.1:5000/verifyAccount \
 -H "Content-Type: application/json" \
--d '{"username": "eamon", "password": "world"}'
+-d '{"username": "com", "password": "puter"}'
 
 curl -X POST http://127.0.0.1:5000/changePassword \
 -H "Content-Type: application/json" \
 -d '{"username": "eamon", "password": "world", "newPassword": "1234"}'
 
 python -m unittest test.py
+
+curl -X POST "http:http://localhost:5000/verifyAccount" \
+     -H "Content-Type: application/json" \
+     -d '{"userName": "testUser", "password": "testPassword"}'

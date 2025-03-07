@@ -1,5 +1,14 @@
 from flask import Flask, request, jsonify
 import sqlite3
+import json
+import time
+import base64
+
+# Constants
+ISSUER = "https://auth.sonia.com"
+AUDIENCE = "https://api.sonia.com"
+PERMISSIONS = ["buy", "pay"]
+TOKEN_EXPIRATION_TIME = 3600  # 1 hour expiration time
 
 #Initialize Flask app
 app = Flask(__name__)
@@ -45,23 +54,40 @@ def createAccount(userName, password):
 
 
 def verifyAccount(userName, password):
-	conn = get_db_connection()
-	cur = conn.cursor()
-	cur.execute("SELECT hash FROM myusertable WHERE username = ?", (userName,))
-	rows = cur.fetchall()
-	if len(rows) == 0:
-		print('Username not found')
-		return False
-	first_row = rows[0]
-	hashInDB = first_row[0]
-	conn.commit()
-	cur.close()
-	conn.close()
-	if hashInDB == str(hash(password)):
-		return True
-	else:
-		print('Password not found')
-		return False
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT hash FROM myusertable WHERE username = ?", (userName,))
+    rows = cur.fetchall()
+    if len(rows) == 0:
+        print('Username not found')
+        return None  # Return None if username is not found
+    first_row = rows[0]
+    hashInDB = first_row[0]
+    conn.commit()
+    cur.close()
+    conn.close()
+    # If the password hash matches, create the JWT token
+    if hashInDB == str(hash(password)):
+        # Create the payload
+        iat = int(time.time())  # Issue timestamp
+        exp = iat + TOKEN_EXPIRATION_TIME  # Expiration timestamp
+        
+        payload = {
+            "sub": userName,
+            "iss": ISSUER,
+            "aud": AUDIENCE,
+            "iat": iat,
+            "exp": exp,
+            "permissions": PERMISSIONS
+        }
+        
+        # Generate JWT token
+        payload_json = json.dumps(payload)
+        token = base64.urlsafe_b64encode(payload_json.encode('utf-8')).decode('utf-8').rstrip("=") 
+        return token
+    else:
+        print('Password not found')
+        return None  # Return None if password does not match
 
 def changePassword(userName, password, newPassword):
 	accountExists = verifyAccount(userName, password)
@@ -160,7 +186,7 @@ def change_password():
 		return jsonify({'error': 'Missing username, password, or new password'}), 400
 	
 	changedpwd = changePassword(username, password, newpwd)
-	
+
 	if changedpwd == True:
 		return jsonify({'message': 'Password changed successfully'}), 200
 	else:
