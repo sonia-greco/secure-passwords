@@ -3,15 +3,12 @@ import sqlite3
 import json
 import time
 import base64
-import os
 
-
-#Constants
+# Constants
 ISSUER = "https://auth.sonia.com"
 AUDIENCE = "https://api.sonia.com"
 PERMISSIONS = ["buy", "pay"]
-TOKEN_EXPIRATION_TIME = 3600
-
+TOKEN_EXPIRATION_TIME = 3600  # 1 hour expiration time
 
 #Initialize Flask app
 app = Flask(__name__)
@@ -19,7 +16,6 @@ app = Flask(__name__)
 def get_db_connection():
     conn = sqlite3.connect('hashedpotatoes.db', check_same_thread=False)
     return conn
-
 
 #Clear data table
 def empty_db():
@@ -32,7 +28,7 @@ def empty_db():
 	cur.close()
 	conn.close()
 
-#empty_db()
+# empty_db()
 
 conn = get_db_connection()
 cur = conn.cursor()
@@ -58,36 +54,40 @@ def createAccount(userName, password):
 
 
 def verifyAccount(userName, password):
-	conn = get_db_connection()
-	cur = conn.cursor()
-	cur.execute("SELECT hash FROM myusertable WHERE username = ?", (userName,))
-	rows = cur.fetchall()
-	if len(rows) == 0:
-		print('Username not found')
-		return False
-	first_row = rows[0]
-	hashInDB = first_row[0]
-	conn.commit()
-	cur.close()
-	conn.close()
-	if hashInDB == str(hash(password)):
-		iat = int(time.time())  # Issue timestamp
-		exp = iat + TOKEN_EXPIRATION_TIME  # Expiration timestamp
-	
-		payload = {
-			"sub": userName,
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT hash FROM myusertable WHERE username = ?", (userName,))
+    rows = cur.fetchall()
+    if len(rows) == 0:
+        print('Username not found')
+        return None  # Return None if username is not found
+    first_row = rows[0]
+    hashInDB = first_row[0]
+    conn.commit()
+    cur.close()
+    conn.close()
+    # If the password hash matches, create the JWT token
+    if hashInDB == str(hash(password)):
+        # Create the payload
+        iat = int(time.time())  # Issue timestamp
+        exp = iat + TOKEN_EXPIRATION_TIME  # Expiration timestamp
+        
+        payload = {
+            "sub": userName,
             "iss": ISSUER,
             "aud": AUDIENCE,
             "iat": iat,
             "exp": exp,
             "permissions": PERMISSIONS
-		}
-
-		payload_json = json.dumps(payload)
-		return base64.urlsafe_b64encode(payload_json.encode('utf-8')).decode('utf-8').rstrip("=")
-	else:
-		print('Password not found')
-		return None
+        }
+        
+        # Generate JWT token
+        payload_json = json.dumps(payload)
+        #token = base64.urlsafe_b64encode(payload_json.encode('utf-8')).decode('utf-8').rstrip("=") 
+        return payload_json
+    else:
+        print('Password not found')
+        return None  # Return None if password does not match
 
 def changePassword(userName, password, newPassword):
 	accountExists = verifyAccount(userName, password)
@@ -102,8 +102,6 @@ def changePassword(userName, password, newPassword):
 		return True
 	else:
 		return False
-	
-
 """
 print('Please create an account')
 
@@ -169,15 +167,12 @@ def verify_account():
 	if 'username' not in data or 'password' not in data:
 		return jsonify({'error': 'Incorrect username or password'}), 400
 	
-	token = verifyAccount(username, password)
+	validAccount = verifyAccount(username, password)
 
-	if token == None:
-		return jsonify({'error': 'Account not verified'}), 401
+	if validAccount == True:
+		return jsonify({'message': 'Account is verified'}), 200
 	else:
-		payload = {
-			"token": token
-		}
-		return jsonify(payload), 200
+		return jsonify({'error': 'Account not verified'}), 401
 
 #API endpoint to change a password
 @app.route('/changePassword', methods=['POST'])
@@ -191,7 +186,7 @@ def change_password():
 		return jsonify({'error': 'Missing username, password, or new password'}), 400
 	
 	changedpwd = changePassword(username, password, newpwd)
-	
+
 	if changedpwd == True:
 		return jsonify({'message': 'Password changed successfully'}), 200
 	else:

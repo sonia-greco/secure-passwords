@@ -1,11 +1,11 @@
     
 curl -X POST http://127.0.0.1:5000/createAccount \
 -H "Content-Type: application/json" \
--d '{"username": "com", "password": "puter"}'
+-d '{"username": "omega-3d", "password": "nordic"}'
 
 curl -X POST http://127.0.0.1:5000/verifyAccount \
 -H "Content-Type: application/json" \
--d '{"username": "com", "password": "puter"}'
+-d '{"username": "omega-3d", "password": "nordic"}'
 
 curl -X POST http://127.0.0.1:5000/changePassword \
 -H "Content-Type: application/json" \
@@ -16,3 +16,13 @@ python -m unittest test.py
 curl -X POST "http:http://localhost:5000/verifyAccount" \
      -H "Content-Type: application/json" \
      -d '{"userName": "testUser", "password": "testPassword"}'
+
+
+curl -X POST "http:http://localhost:5000//grade" \
+     -H "Content-Type: application/json" \
+     -d '{"className": "History", "studentId": "123456789", "newGrade": "A"}'
+
+curl -X GET "http:http://localhost:5000//grade" \
+     -H "Content-Type: application/json" \
+     -d '{"studentId": "123456789", "className": "History"}'
+
