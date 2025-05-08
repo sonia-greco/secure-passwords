@@ -13,16 +13,31 @@ curl -X POST http://127.0.0.1:5000/changePassword \
 
 python -m unittest test.py
 
-curl -X POST "http:http://localhost:5000/verifyAccount" \
+curl -X POST "http://localhost:5000/verifyAccount" \
      -H "Content-Type: application/json" \
      -d '{"userName": "testUser", "password": "testPassword"}'
 
-
-curl -X POST "http:http://localhost:5000//grade" \
+curl -X POST "http://localhost:5000//grade" \
      -H "Content-Type: application/json" \
      -d '{"className": "History", "studentId": "123456789", "newGrade": "A"}'
 
-curl -X GET "http:http://localhost:5000//grade" \
-     -H "Content-Type: application/json" \
-     -d '{"studentId": "123456789", "className": "History"}'
+curl -X GET "http://localhost:5000//grade?studentId=123456789&className=History" \
+      -H "Authorization: Bearer eyJzdWIiOiAib21lZ2EtM2QiLCAiaXNzIjogImh0dHBzOi8vYXV0aC5zb25pYS5jb20iLCAiYXVkIjogImh0dHBzOi8vYXBpLnNvbmlhLmNvbSIsICJpYXQiOiAxNzQ2Njc5NTk5LCAiZXhwIjogMTc0NjY4MzE5OSwgInBlcm1pc3Npb25zIjogeyJyZWFkIjogZmFsc2UsICJ3cml0ZSI6IGZhbHNlfX0.P1MhCQzr2L0xGjCEAWC8piMtxn2FezVKyDoTeIIM_xFwcPXRpf66EXqJV4I81xhiaLOyHC-046SAiF6UAMnJIWQcD8qNf_SCyUEYs_fSYqmi5GpJB6ASgK7qi4DHVXV8HEBds81VFPg6R8REXqGvN3F6FjEMHosAbrqCUrLmPzygAcGsYCbh_8nf4K4lxxvP2X7NIPVtxpGjlymuUWV_RmA7t3enUwMuElu7ZqgzlgE398LVbQZmI2rRgE-2h4vqGyzTSZLe2iqQSUIRIij0jUCkHqPTLh96vGOrATOt0ALjntywuEG8TYGlvaQ666ido5hfb80ps32GV2Oj27ZyPg=="
 
+curl -X POST "http://localhost:5000//grade" \
+     -H "Authorization: Bearer eyJzdWIiOiAib21lZ2EtM2QiLCAiaXNzIjogImh0dHBzOi8vYXV0aC5zb25pYS5jb20iLCAiYXVkIjogImh0dHBzOi8vYXBpLnNvbmlhLmNvbSIsICJpYXQiOiAxNzQyNzg5Mzc3LCAiZXhwIjogMTc0Mjc5Mjk3NywgInBlcm1pc3Npb25zIjogWyJyZWFkIiwgIndyaXRlIl19" \
+     -H "Content-Type: application/json" \
+     -d '{"studentId": "123456789", "className": "History", "newGrade": "A"}'
+
+
+
+
+
+
+
+
+
+
+
+
+#? only for query

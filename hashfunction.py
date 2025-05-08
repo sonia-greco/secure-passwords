@@ -4,14 +4,80 @@ import json
 import time
 import base64
 import os
-
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import serialization, hashes
 
 #Constants
 ISSUER = "https://auth.sonia.com"
 AUDIENCE = "https://api.sonia.com"
-PERMISSIONS = ["buy", "pay"]
+PERMISSIONS = ["read", "write"]
 TOKEN_EXPIRATION_TIME = 3600
 
+# Load RSA keys
+with open("keys/private_key.pem", "rb") as key_file:
+    PRIVATE_KEY = serialization.load_pem_private_key(
+        key_file.read(),
+        password=None,
+    )
+
+with open("keys/public_key.pem", "rb") as key_file:
+    PUBLIC_KEY = serialization.load_pem_public_key(key_file.read())
+
+def sign_token(payload):
+    """
+    Signs the token using the private key.
+
+    Args:
+        payload (str): The payload to be signed (JSON string).
+
+    Returns:
+        str: The signed token (Base64 encoded).
+    """
+    signature = PRIVATE_KEY.sign(
+        payload.encode("utf-8"),
+        padding.PKCS1v15(),
+        hashes.SHA256(),
+    )
+    return base64.urlsafe_b64encode(signature).decode("utf-8")
+
+def verify_token(payload, signature):
+    """
+    Verifies the token using the public key.
+
+    Args:
+        payload (str): The payload to verify (JSON string).
+        signature (str): The Base64-encoded signature.
+
+    Returns:
+        bool: True if the signature is valid, False otherwise.
+    """
+    try:
+        PUBLIC_KEY.verify(
+            base64.urlsafe_b64decode(signature),
+            payload.encode("utf-8"),
+            padding.PKCS1v15(),
+            hashes.SHA256(),
+        )
+        return True
+    except Exception:
+        return False
+
+def encode_token(payload):
+    payload_json = json.dumps(payload)
+    encoded_payload = base64.urlsafe_b64encode(payload_json.encode("utf-8")).decode("utf-8").rstrip("=")
+    signature = sign_token(encoded_payload)
+    return f"{encoded_payload}.{signature}"
+
+def decode_token(token):
+    try:
+        encoded_payload, signature = token.rsplit(".", 1)
+        if verify_token(encoded_payload, signature):
+            payload_json = base64.urlsafe_b64decode(encoded_payload + "=" * (-len(encoded_payload) % 4)).decode("utf-8")
+            return json.loads(payload_json)
+        else:
+            return None
+    except Exception:
+        return None
 
 #Initialize Flask app
 app = Flask(__name__)
@@ -32,25 +98,43 @@ def empty_db():
 	cur.close()
 	conn.close()
 
-#empty_db()
+def delete_tables():
+    """
+    Deletes all tables in the database.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = cur.fetchall()
+    for table_name in tables:
+        cur.execute(f"DROP TABLE IF EXISTS {table_name[0]}")
+    conn.commit()
+    cur.close()
+    conn.close()
+    print("All tables deleted successfully.")
+
+# delete_tables()
+# empty_db()
 
 conn = get_db_connection()
 cur = conn.cursor()
 cur.execute('''
 CREATE TABLE IF NOT EXISTS myusertable (
   username TEXT PRIMARY KEY, 
-  hash TEXT NOT NULL
+  hash TEXT NOT NULL,
+  readperm INTEGER DEFAULT 0,
+  writeperm INTEGER DEFAULT 0
 )
 ''')
 conn.commit()
 cur.close()
 conn.close()
 
-def createAccount(userName, password):
+def createAccount(userName, password, readPerm=0, writePerm=0):
 	hashedpwd = str(hash(password))
 	conn = get_db_connection()
 	cur = conn.cursor()
-	cur.execute("INSERT INTO myusertable (username, hash) VALUES (?, ?)", (userName, hashedpwd))
+	cur.execute("INSERT INTO myusertable (username, hash, readperm, writeperm) VALUES (?, ?, ?, ?)", (userName, hashedpwd, readPerm, writePerm))
 	conn.commit()
 	cur.close()
 	conn.close()
@@ -60,13 +144,13 @@ def createAccount(userName, password):
 def verifyAccount(userName, password):
 	conn = get_db_connection()
 	cur = conn.cursor()
-	cur.execute("SELECT hash FROM myusertable WHERE username = ?", (userName,))
+	cur.execute("SELECT hash,readperm,writeperm FROM myusertable WHERE username = ?", (userName,))
 	rows = cur.fetchall()
 	if len(rows) == 0:
 		print('Username not found')
 		return False
 	first_row = rows[0]
-	hashInDB = first_row[0]
+	hashInDB, readperm, writeperm = first_row
 	conn.commit()
 	cur.close()
 	conn.close()
@@ -80,11 +164,13 @@ def verifyAccount(userName, password):
             "aud": AUDIENCE,
             "iat": iat,
             "exp": exp,
-            "permissions": PERMISSIONS
+            "permissions": {
+				"read": bool(readperm),
+				"write": bool(writeperm)
+			}
 		}
 
-		payload_json = json.dumps(payload)
-		return base64.urlsafe_b64encode(payload_json.encode('utf-8')).decode('utf-8').rstrip("=")
+		return payload
 	else:
 		print('Password not found')
 		return None
@@ -152,11 +238,13 @@ def create_account():
     data = request.json
     username = data.get('username')
     password = data.get('password')
+    readperm = data.get('readperm', 0)
+    writeperm = data.get('writeperm', 0)
 
     if 'username' not in data or 'password' not in data:
         return jsonify({'error': 'Username or password are required'}), 400
     else: 
-        createAccount(username, password)
+        createAccount(username, password, readperm, writeperm)
         return jsonify({'message': 'Account created successfully'}), 201
 
 #API endpoint to verify an account
@@ -175,7 +263,7 @@ def verify_account():
 		return jsonify({'error': 'Account not verified'}), 401
 	else:
 		payload = {
-			"token": token
+			"token": encode_token(token)
 		}
 		return jsonify(payload), 200
 

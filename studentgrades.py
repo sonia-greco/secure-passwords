@@ -1,5 +1,10 @@
 from flask import Flask, request, jsonify
 import sqlite3
+import json
+import time
+import base64
+import os
+from hashfunction import decode_token, verify_token
 
 app = Flask(__name__)
 
@@ -30,6 +35,35 @@ CREATE TABLE IF NOT EXISTS gradestable (
 conn.commit()
 cur.close()
 conn.close()
+
+def decode_token_with_verification(token):
+    try:
+        encoded_payload, signature = token.rsplit(".", 1)
+        if verify_token(encoded_payload, signature):
+            payload_json = base64.urlsafe_b64decode(encoded_payload + "=" * (-len(encoded_payload) % 4)).decode("utf-8")
+            return json.loads(payload_json)
+        else:
+            return None
+    except Exception:
+        return None
+
+def check_token(request, required_permission):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return False, {"error": "Missing authorization token"}
+
+    token = auth_header.split(" ")[-1]  # Extract token from 'Bearer <token>'
+    payload = decode_token_with_verification(token)
+    if not payload:
+        return False, {"error": "Invalid or tampered token"}
+
+    if "exp" in payload and time.time() > payload["exp"]:
+        return False, {"error": "Token expired"}
+
+    if required_permission not in payload.get("permissions", []):
+        return False, {"error": "Insufficient permissions"}
+
+    return True, payload
 
 def changeGrade(studentId, className, newGrade):
     conn = get_db2_connection()
@@ -62,22 +96,60 @@ def getGrade(studentId, className):
         print("Grade not found")
         return None
 
-# Test case: Updating grade for an existing student-class pair
-changeGrade("123456789", "History", "A")
-
-# Verify the update
-grade = getGrade("123456789", "History")
-print("Updated Grade:", grade)  # Expected output: "Updated Grade: A"
+#changeGrade("123456789", "History", "A")
+#grade = getGrade("123456789", "History")
+#print("Updated Grade:", grade) 
 
 
 
-# Setup: Insert a test grade
-changeGrade("123456789", "Math", "B")
+#changeGrade("123456789", "Math", "B")
+#grade = getGrade("123456789", "Math")
+#assert grade == "B", f"Expected 'B', but got {grade}"
+#print("Test passed! Retrieved grade:", grade)
 
-# Test: Retrieve the grade
-grade = getGrade("123456789", "Math")
 
-# Check if the result matches the expected grade
-assert grade == "B", f"Expected 'B', but got {grade}"
+#just in case
+@app.route('/grade', methods=['POST'])
+def change_grade():
+    authorized, response = check_token(request, "write")
+    if not authorized:
+        return jsonify(response), 403
+    
+    data = request.json
+    studentId = data.get('studentId')
+    className = data.get('className')
+    newGrade = data.get('newGrade')
 
-print("Test passed! Retrieved grade:", grade)
+    if 'studentId' not in data or 'className' not in data or 'newGrade' not in data:
+             return jsonify({"error": "Missing required fields"}), 400
+    
+    changeGrade(studentId, className, newGrade)
+    return jsonify({"message": "Grade updated successfully"}), 200
+    
+
+@app.route('/grade', methods=['GET'])
+def get_grade_endpoint():
+    authorized, response = check_token(request, "read")
+    if not authorized:
+        return jsonify(response), 403
+    
+    studentId = request.args.get("studentId")
+    className = request.args.get("className")
+    
+    if not studentId or not className:
+        return jsonify({"error": "Missing required fields"}), 400
+    
+    grade = getGrade(studentId, className)
+    if grade is not None:
+        return jsonify({"grade": grade})
+    else:
+        return jsonify({"error": "Grade not found"}), 404
+    
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+#token used to get access to endpoint (to read and write grades) -->
+#(keep the pwd secure in user acc as a feature) + authenticate and authorize user
+#user verify acc to obtain token
