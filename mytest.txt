@@ -1,33 +1,29 @@
     
+TESTS FOR hashfunction.py
+
 curl -X POST http://127.0.0.1:5000/createAccount \
 -H "Content-Type: application/json" \
--d '{"username": "omega-3d", "password": "nordic"}'
+-d '{"username": "omega-d", "password": "nordic"}'
 
 curl -X POST http://127.0.0.1:5000/verifyAccount \
 -H "Content-Type: application/json" \
--d '{"username": "omega-3d", "password": "nordic"}'
+-d '{"username": "omega-d", "password": "nordic3"}'
 
 curl -X POST http://127.0.0.1:5000/changePassword \
 -H "Content-Type: application/json" \
--d '{"username": "eamon", "password": "world", "newPassword": "1234"}'
+-d '{"username": "omega-d", "password": "nordic", "newPassword": "nordic3"}'
 
-python -m unittest test.py
 
-curl -X POST "http://localhost:5000/verifyAccount" \
-     -H "Content-Type: application/json" \
-     -d '{"userName": "testUser", "password": "testPassword"}'
+TESTS FOR studentgrades.py
 
-curl -X POST "http://localhost:5000//grade" \
-     -H "Content-Type: application/json" \
-     -d '{"className": "History", "studentId": "123456789", "newGrade": "A"}'
 
-curl -X GET "http://localhost:5000//grade?studentId=123456789&className=History" \
-      -H "Authorization: Bearer eyJzdWIiOiAib21lZ2EtM2QiLCAiaXNzIjogImh0dHBzOi8vYXV0aC5zb25pYS5jb20iLCAiYXVkIjogImh0dHBzOi8vYXBpLnNvbmlhLmNvbSIsICJpYXQiOiAxNzQ2Njc5NTk5LCAiZXhwIjogMTc0NjY4MzE5OSwgInBlcm1pc3Npb25zIjogeyJyZWFkIjogZmFsc2UsICJ3cml0ZSI6IGZhbHNlfX0.P1MhCQzr2L0xGjCEAWC8piMtxn2FezVKyDoTeIIM_xFwcPXRpf66EXqJV4I81xhiaLOyHC-046SAiF6UAMnJIWQcD8qNf_SCyUEYs_fSYqmi5GpJB6ASgK7qi4DHVXV8HEBds81VFPg6R8REXqGvN3F6FjEMHosAbrqCUrLmPzygAcGsYCbh_8nf4K4lxxvP2X7NIPVtxpGjlymuUWV_RmA7t3enUwMuElu7ZqgzlgE398LVbQZmI2rRgE-2h4vqGyzTSZLe2iqQSUIRIij0jUCkHqPTLh96vGOrATOt0ALjntywuEG8TYGlvaQ666ido5hfb80ps32GV2Oj27ZyPg=="
+curl -X GET "http://localhost:5000//grade?studentId=123456789&className=Math" \
+      -H "Authorization: Bearer eyJzdWIiOiAib21lZ2EtZCIsICJpc3MiOiAiaHR0cHM6Ly9hdXRoLnNvbmlhLmNvbSIsICJhdWQiOiAiaHR0cHM6Ly9hcGkuc29uaWEuY29tIiwgImlhdCI6IDE3NDk1Nzg5NjYsICJleHAiOiAxNzQ5NTgyNTY2LCAicGVybWlzc2lvbnMiOiB7InJlYWQiOiBmYWxzZSwgIndyaXRlIjogZmFsc2V9fQ.o303zsOyZDdzq_68srJ3vDc4hIqT0wEOuWRZixROyRxQrb_h8ZfJ4cL6O3HZI-jxDXujBXudI1m6hMHr-l0Urdc0lfzEiSZUJI2zpWuybBrIxhgejbEJjkTLIVj1myZ_eOhZEy1ySV8_qMz42vjrTM4TEKN9U6rEH33FM98S-tOepKF7V1PVupvNbRiM1mJboPNQuPQCVA07F-SeEYMm3NmGmr3QmHf93bRANjTLDiNIKyclSTwRwHveJRMAXQE1fBt4wsHUT9wrFDgGu-V_dY-EQe3SzKIVpFkwi9uajjsJGQcJAICJdoa5oV7I4oCwXdrRIDo3BGbtf0jPrPFj5w=="
 
 curl -X POST "http://localhost:5000//grade" \
-     -H "Authorization: Bearer eyJzdWIiOiAib21lZ2EtM2QiLCAiaXNzIjogImh0dHBzOi8vYXV0aC5zb25pYS5jb20iLCAiYXVkIjogImh0dHBzOi8vYXBpLnNvbmlhLmNvbSIsICJpYXQiOiAxNzQyNzg5Mzc3LCAiZXhwIjogMTc0Mjc5Mjk3NywgInBlcm1pc3Npb25zIjogWyJyZWFkIiwgIndyaXRlIl19" \
+     -H "Authorization: Bearer eyJzdWIiOiAib21lZ2EtZCIsICJpc3MiOiAiaHR0cHM6Ly9hdXRoLnNvbmlhLmNvbSIsICJhdWQiOiAiaHR0cHM6Ly9hcGkuc29uaWEuY29tIiwgImlhdCI6IDE3NDk1Nzg5NjYsICJleHAiOiAxNzQ5NTgyNTY2LCAicGVybWlzc2lvbnMiOiB7InJlYWQiOiBmYWxzZSwgIndyaXRlIjogZmFsc2V9fQ.o303zsOyZDdzq_68srJ3vDc4hIqT0wEOuWRZixROyRxQrb_h8ZfJ4cL6O3HZI-jxDXujBXudI1m6hMHr-l0Urdc0lfzEiSZUJI2zpWuybBrIxhgejbEJjkTLIVj1myZ_eOhZEy1ySV8_qMz42vjrTM4TEKN9U6rEH33FM98S-tOepKF7V1PVupvNbRiM1mJboPNQuPQCVA07F-SeEYMm3NmGmr3QmHf93bRANjTLDiNIKyclSTwRwHveJRMAXQE1fBt4wsHUT9wrFDgGu-V_dY-EQe3SzKIVpFkwi9uajjsJGQcJAICJdoa5oV7I4oCwXdrRIDo3BGbtf0jPrPFj5w==" \
      -H "Content-Type: application/json" \
-     -d '{"studentId": "123456789", "className": "History", "newGrade": "A"}'
+     -d '{"studentId": "123456789", "className": "History", "newGrade": "C"}'
 
 
 
@@ -41,3 +37,16 @@ curl -X POST "http://localhost:5000//grade" \
 
 
 #? only for query
+
+OTHER TESTS
+
+python -m unittest test.py
+
+curl -X POST "http://localhost:5000/verifyAccount" \
+     -H "Content-Type: application/json" \
+     -d '{"userName": "testUser", "password": "testPassword"}'
+
+
+curl -X POST "http://localhost:5000//grade" \
+     -H "Content-Type: application/json" \
+     -d '{"className": "History", "studentId": "123456789", "newGrade": "A"}'

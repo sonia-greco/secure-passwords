@@ -6,6 +6,8 @@ import base64
 import os
 from hashfunction import decode_token, verify_token
 
+#visibility --> public
+
 app = Flask(__name__)
 
 def get_db2_connection():
